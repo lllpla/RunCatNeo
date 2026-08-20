@@ -101,7 +101,8 @@ struct RunnerService {
             cpuValue
         }
         let lastSpeed = appStateClient.withLock(\.runnerSpeeds.latestValue)
-        if force || lastSpeed == nil || abs(speed - lastSpeed!) >= Self.speedDeadband {
+        let isNew = lastSpeed.map { abs(speed - $0) >= Self.speedDeadband } ?? true
+        if force || isNew {
             appStateClient.send(\.runnerSpeeds, speed)
         }
     }
