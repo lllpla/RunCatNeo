@@ -42,23 +42,29 @@ struct CustomMetricsCardView: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 8) {
             Image(systemName: snapshot.displaySymbol)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 24, height: 24)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: snapshot.title)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                 Group {
                     ForEach(snapshot.metrics.enumerated(), id: \.offset) { _, metric in
                         Text(verbatim: "\(metric.title): \(metric.formattedValue)")
-                            .font(.caption)
+                            .font(.system(.caption, design: .monospaced))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
                         if let normalizedValue = metric.normalizedValue {
                             BarGraphView(value: max(0, min(1, normalizedValue)) * 100)
                         }
                     }
                     Text("lastUpdated:\(lastUpdatedDetail)", bundle: .module)
                         .font(.caption)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                         .foregroundStyle(isFailed ? Color.red : Color.secondary)
                 }
                 .padding(.leading, 12)

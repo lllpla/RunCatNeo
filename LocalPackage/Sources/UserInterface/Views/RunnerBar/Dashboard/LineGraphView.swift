@@ -18,22 +18,31 @@
  limitations under the License.
  */
 
+import AppKit
 import SwiftUI
 
 struct LineGraphView: View {
     var values: [Double]
 
     var body: some View {
-        Path { path in
-            path.move(to: CGPoint(x: 0, y: 16))
-            values.enumerated().forEach { offset, value in
-                let v = min(100, max(2, value))
-                path.addLine(to: CGPoint(x: 2.0 * CGFloat(offset), y: 16 - 0.16 * v))
+        GeometryReader { geometry in
+            Path { path in
+                let width = geometry.size.width
+                let height = geometry.size.height
+                path.move(to: CGPoint(x: 0, y: height))
+                if values.count > 1 {
+                    let step = width / CGFloat(values.count - 1)
+                    values.enumerated().forEach { offset, value in
+                        let v = min(100, max(2, value))
+                        path.addLine(to: CGPoint(x: step * CGFloat(offset), y: height - 0.16 * v))
+                    }
+                }
+                path.addLine(to: CGPoint(x: width, y: height))
+                path.closeSubpath()
             }
-            path.addLine(to: CGPoint(x: 120, y: 16))
-            path.closeSubpath()
+            .fill(Color(nsColor: .controlAccentColor))
         }
-        .fill(Color.accentColor)
-        .frame(width: 120, height: 16)
+        .frame(height: 16)
+        .frame(maxWidth: .infinity)
     }
 }

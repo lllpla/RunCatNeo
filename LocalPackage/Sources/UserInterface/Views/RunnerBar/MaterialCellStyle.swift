@@ -23,13 +23,9 @@ import SwiftUI
 private struct MaterialCellViewModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(.ultraThinMaterial, in: .rect(cornerRadius: 12))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color(.separatorColor), lineWidth: 1)
-            }
+            .glassEffect(.regular, in: .rect(cornerRadius: 10))
             .compositingGroup()
-            .shadow(radius: 2, y: 2)
+            .shadow(color: Color.black.opacity(0.08), radius: 6, y: 2)
     }
 }
 
