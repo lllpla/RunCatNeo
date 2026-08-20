@@ -86,14 +86,24 @@ struct RunnerService {
         loadRunnerBundleList()
     }
 
-    func updateRunnerSpeed(from cpuInfo: CPUInfo?) {
+    // Speed deadband: suppresses redundant setSpeed mutations on the RunnerLayer
+    // when CPU load jitters within ~2.5% (speed granularity is 0.2 per percent).
+    // The previous value is read back from the stream's latestValue, so no extra
+    // state is kept here. `force` bypasses the deadband for user-initiated changes
+    // (e.g. toggling speedDecreasesUnderLoad) so the new mode always takes effect.
+    private static let speedDeadband: Float = 0.5
+
+    func updateRunnerSpeed(from cpuInfo: CPUInfo?, force: Bool = false) {
         let cpuValue = max(1.0, min(20.0, Float(cpuInfo?.percentage.value ?? .zero) / 5.0))
         let speed: Float = if userDefaultsRepository.speedDecreasesUnderLoad {
             0.5 * (21.0 - cpuValue)
         } else {
             cpuValue
         }
-        appStateClient.send(\.runnerSpeeds, speed)
+        let lastSpeed = appStateClient.withLock(\.runnerSpeeds.latestValue)
+        if force || lastSpeed == nil || abs(speed - lastSpeed!) >= Self.speedDeadband {
+            appStateClient.send(\.runnerSpeeds, speed)
+        }
     }
 
     func resendCurrentRunnerBundle() {

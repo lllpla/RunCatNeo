@@ -68,7 +68,7 @@ public final class RunnerSettings: Composable {
             speedDecreasesUnderLoad = isOn
             userDefaultsRepository.speedDecreasesUnderLoad = isOn
             let cpuInfo = systemMetricsService.currentSystemInfoBundle.cpuInfo
-            runnerService.updateRunnerSpeed(from: cpuInfo)
+            runnerService.updateRunnerSpeed(from: cpuInfo, force: true)
 
         case let .flipHorizontallyToggleSwitched(isOn):
             isFlippedHorizontally = isOn
