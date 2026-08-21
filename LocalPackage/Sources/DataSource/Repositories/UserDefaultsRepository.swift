@@ -38,6 +38,27 @@ public struct UserDefaultsRepository: Sendable {
         nonmutating set { userDefaultsClient.set(newValue, .isFlippedHorizontally) }
     }
 
+    public var showsLoadAlert: Bool {
+        get { userDefaultsClient.bool(.showsLoadAlert) }
+        nonmutating set { userDefaultsClient.set(newValue, .showsLoadAlert) }
+    }
+
+    /// Timestamp of the last load alert, used to enforce the cooldown window.
+    /// Absent (nil) means no alert has ever been fired.
+    public var lastLoadAlertDate: Date? {
+        get {
+            let value = userDefaultsClient.double(.lastLoadAlertDate)
+            return value > 0 ? Date(timeIntervalSince1970: value) : nil
+        }
+        nonmutating set {
+            if let newValue {
+                userDefaultsClient.set(newValue.timeIntervalSince1970, .lastLoadAlertDate)
+            } else {
+                userDefaultsClient.removeObject(.lastLoadAlertDate)
+            }
+        }
+    }
+
     public var updateInterval: UpdateInterval {
         get { UpdateInterval(rawValue: userDefaultsClient.integer(.updateInterval)) ?? .default }
         nonmutating set { userDefaultsClient.set(newValue.rawValue, .updateInterval) }
@@ -108,6 +129,7 @@ public struct UserDefaultsRepository: Sendable {
             .runnerID: RunnerKind.cat.id,
             .speedDecreasesUnderLoad: false,
             .isFlippedHorizontally: false,
+            .showsLoadAlert: false,
             .updateInterval: UpdateInterval.default.rawValue,
         ])
         if ProcessInfo.needsShowAllData {

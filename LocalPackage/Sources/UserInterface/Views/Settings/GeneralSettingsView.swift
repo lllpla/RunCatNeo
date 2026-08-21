@@ -52,6 +52,16 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("monitoring", bundle: .module)
             }
+            Section {
+                Toggle(isOn: Binding<Bool>(
+                    get: { store.showsLoadAlert },
+                    asyncSet: { await store.send(.loadAlertToggleSwitched($0)) }
+                )) {
+                    Text("loadAlert", bundle: .module)
+                }
+            } header: {
+                Text("alerts", bundle: .module)
+            }
         }
         .formStyle(.grouped)
         .task {

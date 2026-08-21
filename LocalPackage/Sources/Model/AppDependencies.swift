@@ -34,6 +34,7 @@ public struct AppDependencies: Sendable {
     public var systemInfoObserverClient = SystemInfoObserverClient.liveValue
     public var urlClient = URLClient.liveValue
     public var userDefaultsClient = UserDefaultsClient.liveValue
+    public var userNotificationClient = UserNotificationClient.liveValue
     public var uuidClient = UUIDClient.liveValue
 
     static let shared = AppDependencies()
@@ -57,6 +58,7 @@ extension AppDependencies {
         systemInfoObserverClient: SystemInfoObserverClient = .testValue,
         urlClient: URLClient = .testValue,
         userDefaultsClient: UserDefaultsClient = .testValue,
+        userNotificationClient: UserNotificationClient = .testValue,
         uuidClient: UUIDClient = .testValue
     ) -> AppDependencies {
         AppDependencies(
@@ -72,6 +74,7 @@ extension AppDependencies {
             systemInfoObserverClient: systemInfoObserverClient,
             urlClient: urlClient,
             userDefaultsClient: userDefaultsClient,
+            userNotificationClient: userNotificationClient,
             uuidClient: uuidClient
         )
     }

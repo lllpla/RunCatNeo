@@ -27,23 +27,28 @@ public final class GeneralSettings: Composable {
     private let userDefaultsRepository: UserDefaultsRepository
     private let logService: LogService
     private let systemMetricsService: SystemMetricsService
+    private let userNotificationClient: UserNotificationClient
 
     public var updateInterval: UpdateInterval
     public var launchesAtLogin: Bool
+    public var showsLoadAlert: Bool
     public let action: (Action) async -> Void
 
     public init(
         _ appDependencies: AppDependencies,
         updateInterval: UpdateInterval? = nil,
         launchesAtLogin: Bool? = nil,
+        showsLoadAlert: Bool? = nil,
         action: @escaping (Action) async -> Void = { _ in }
     ) {
         self.launchAtLoginRepository = .init(appDependencies.smAppServiceClient)
         self.userDefaultsRepository = .init(appDependencies.userDefaultsClient)
         self.logService = .init(appDependencies)
         self.systemMetricsService = .init(appDependencies)
+        self.userNotificationClient = appDependencies.userNotificationClient
         self.updateInterval = updateInterval ?? userDefaultsRepository.updateInterval
         self.launchesAtLogin = launchesAtLogin ?? launchAtLoginRepository.isEnabled
+        self.showsLoadAlert = showsLoadAlert ?? userDefaultsRepository.showsLoadAlert
         self.action = action
     }
 
@@ -65,6 +70,15 @@ public final class GeneralSettings: Composable {
             case let .failure(.switchFailed(value)):
                 launchesAtLogin = value
             }
+
+        case let .loadAlertToggleSwitched(isOn):
+            showsLoadAlert = isOn
+            userDefaultsRepository.showsLoadAlert = isOn
+            // Request permission exactly when the user opts in; the system
+            // won't re-prompt after the first answer.
+            if isOn {
+                Task { _ = await userNotificationClient.requestAuthorization() }
+            }
         }
     }
 
@@ -72,5 +86,6 @@ public final class GeneralSettings: Composable {
         case viewAppeared(String)
         case updateIntervalPickerSelected(UpdateInterval)
         case launchAtLoginToggleSwitched(Bool)
+        case loadAlertToggleSwitched(Bool)
     }
 }
