@@ -25,6 +25,8 @@ extension String {
     static let metricsBarConfiguration = "METRICS_BAR_CONFIGURATION"
     static let runnerID = "RUNNER_ID"
     static let speedDecreasesUnderLoad = "SPEED_DECREASES_UNDER_LOAD"
+    static let showsLoadAlert = "SHOWS_LOAD_ALERT"
+    static let lastLoadAlertDate = "LAST_LOAD_ALERT_DATE"
     static let systemMetricsConfiguration = "SYSTEM_METRICS_CONFIGURATION"
     static let updateInterval = "UPDATE_INTERVAL"
 

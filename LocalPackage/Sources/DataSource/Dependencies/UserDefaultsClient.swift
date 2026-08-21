@@ -23,6 +23,7 @@ import Foundation
 public struct UserDefaultsClient: DependencyClient {
     var bool: @Sendable (String) -> Bool
     var integer: @Sendable (String) -> Int
+    var double: @Sendable (String) -> Double
     var string: @Sendable (String) -> String?
     var data: @Sendable (String) -> Data?
     var set: @Sendable (Any?, String) -> Void
@@ -34,6 +35,7 @@ public struct UserDefaultsClient: DependencyClient {
     public static let liveValue = Self(
         bool: { UserDefaults.standard.bool(forKey: $0) },
         integer: { UserDefaults.standard.integer(forKey: $0) },
+        double: { UserDefaults.standard.double(forKey: $0) },
         string: { UserDefaults.standard.string(forKey: $0) },
         data: { UserDefaults.standard.data(forKey: $0) },
         set: { UserDefaults.standard.set($0, forKey: $1) },
@@ -46,6 +48,7 @@ public struct UserDefaultsClient: DependencyClient {
     public static let testValue = Self(
         bool: { _ in false },
         integer: { _ in 0 },
+        double: { _ in 0 },
         string: { _ in nil },
         data: { _ in nil },
         set: { _, _ in },

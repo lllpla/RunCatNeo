@@ -57,4 +57,60 @@ struct GeneralSettingsTests {
         await sut.send(.launchAtLoginToggleSwitched(true))
         #expect(!sut.launchesAtLogin)
     }
+
+    @MainActor @Test
+    func send_loadAlertToggleSwitched_enables_and_requests_authorization() async {
+        let setCallStack = AllocatedUnfairLock(initialState: [String]())
+        let authorizationRequests = AllocatedUnfairLock(initialState: 0)
+        let sut = GeneralSettings(.testDependencies(
+            userDefaultsClient: testDependency(of: UserDefaultsClient.self) {
+                $0.bool = { _ in false }
+                $0.set = { value, key in
+                    if key == "SHOWS_LOAD_ALERT" {
+                        let entry = "set: \(key) = \(value ?? "nil")"
+                        setCallStack.withLock { $0.append(entry) }
+                    }
+                }
+            },
+            userNotificationClient: testDependency(of: UserNotificationClient.self) {
+                $0.requestAuthorization = {
+                    authorizationRequests.withLock { $0 += 1 }
+                    return true
+                }
+            }
+        ))
+        await sut.send(.loadAlertToggleSwitched(true))
+        #expect(sut.showsLoadAlert)
+        #expect(setCallStack.withLock(\.self) == ["set: SHOWS_LOAD_ALERT = true"])
+        try? await Task.sleep(for: .milliseconds(100))
+        #expect(authorizationRequests.withLock(\.self) == 1)
+    }
+
+    @MainActor @Test
+    func send_loadAlertToggleSwitched_disabling_does_not_request_authorization() async {
+        let setCallStack = AllocatedUnfairLock(initialState: [String]())
+        let authorizationRequests = AllocatedUnfairLock(initialState: 0)
+        let sut = GeneralSettings(.testDependencies(
+            userDefaultsClient: testDependency(of: UserDefaultsClient.self) {
+                $0.bool = { _ in true }
+                $0.set = { value, key in
+                    if key == "SHOWS_LOAD_ALERT" {
+                        let entry = "set: \(key) = \(value ?? "nil")"
+                        setCallStack.withLock { $0.append(entry) }
+                    }
+                }
+            },
+            userNotificationClient: testDependency(of: UserNotificationClient.self) {
+                $0.requestAuthorization = {
+                    authorizationRequests.withLock { $0 += 1 }
+                    return true
+                }
+            }
+        ))
+        await sut.send(.loadAlertToggleSwitched(false))
+        #expect(!sut.showsLoadAlert)
+        #expect(setCallStack.withLock(\.self) == ["set: SHOWS_LOAD_ALERT = false"])
+        try? await Task.sleep(for: .milliseconds(100))
+        #expect(authorizationRequests.withLock(\.self) == 0)
+    }
 }

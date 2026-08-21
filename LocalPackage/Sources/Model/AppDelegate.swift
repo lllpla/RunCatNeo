@@ -38,6 +38,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let customMetricsService = CustomMetricsService(appDependencies)
         let systemMetricsService = SystemMetricsService(appDependencies)
         let runnerService = RunnerService(appDependencies)
+        let alertService = AlertService(appDependencies)
+        // Ask for notification permission once at launch, only if the user has
+        // enabled load alerts (idempotent — the system won't re-prompt).
+        if UserDefaultsRepository(appDependencies.userDefaultsClient).showsLoadAlert {
+            Task { _ = await appDependencies.userNotificationClient.requestAuthorization() }
+        }
         Task {
             await withTaskGroup { group in
                 group.addTask {
@@ -59,6 +65,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                     for await value in stream {
                         systemMetricsService.updateMetrics(from: value)
                         runnerService.updateRunnerSpeed(from: value.cpuInfo)
+                        alertService.checkAndNotify(cpuPercentage: value.cpuInfo?.percentage.value)
                     }
                 }
             }
