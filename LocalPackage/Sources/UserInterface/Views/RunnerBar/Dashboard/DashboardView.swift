@@ -40,15 +40,21 @@ struct DashboardView: View {
                 memoryRingBuffer: store.memoryRingBuffer,
                 isPreview: store.isPreview
             )
-            ForEach(store.customMetricsBundles) { customMetricsBundle in
-                CustomMetricsCardView(
-                    customMetricsBundle: customMetricsBundle,
-                    displayedDate: store.displayedDate
-                )
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible())],
+                alignment: .leading,
+                spacing: 8
+            ) {
+                ForEach(store.customMetricsBundles) { customMetricsBundle in
+                    CustomMetricsCardView(
+                        customMetricsBundle: customMetricsBundle,
+                        displayedDate: store.displayedDate
+                    )
+                }
             }
         }
-        .fixedSize()
         .padding(8)
+        .frame(width: 420)
         .task {
             await store.send(.viewAppeared(String(describing: Self.self)))
         }

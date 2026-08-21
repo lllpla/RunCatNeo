@@ -27,26 +27,25 @@ struct SystemInfoView<Accessory: View>: View {
     @ViewBuilder var accessory: () -> Accessory
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            Image(systemName: systemInfo.icon)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 24, height: 24)
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: systemInfo.icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
                 Text(verbatim: systemInfo.summary)
-                Group {
-                    if isVisibleDetails {
-                        ForEach(systemInfo.details.indices, id: \.self) { index in
-                            Text(verbatim: systemInfo.details[index])
-                                .font(.caption)
-                        }
-                    }
-                    accessory()
+                    .lineLimit(1)
+                if isVisibleDetails, !systemInfo.details.isEmpty {
+                    Text(verbatim: systemInfo.details.joined(separator: " · "))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                 }
-                .padding(.leading, 12)
             }
+            accessory()
         }
-        .fixedSize()
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.leading, 8)
     }
 }
