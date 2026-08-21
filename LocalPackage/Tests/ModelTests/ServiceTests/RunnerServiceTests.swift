@@ -244,6 +244,36 @@ struct RunnerServiceTests {
     }
 
     @Test
+    func updateRunnerSpeed_suppresses_jitter_within_deadband() {
+        let appState = AllocatedUnfairLock<AppState>(initialState: .init())
+        let sut = RunnerService(.testDependencies(appStateClient: .testDependency(appState)))
+        sut.updateRunnerSpeed(from: CPUInfo(percentage: Percentage(rawValue: 0.1), system: .zero, user: .zero, idle: .zero))
+        #expect(appState.withLock(\.runnerSpeeds.latestValue) == 2.0)
+        // 0.12 → 2.4 differs by 0.4 < deadband(0.5): no resend, latestValue unchanged.
+        sut.updateRunnerSpeed(from: CPUInfo(percentage: Percentage(rawValue: 0.12), system: .zero, user: .zero, idle: .zero))
+        #expect(appState.withLock(\.runnerSpeeds.latestValue) == 2.0)
+    }
+
+    @Test
+    func updateRunnerSpeed_sends_when_speed_exceeds_deadband() {
+        let appState = AllocatedUnfairLock<AppState>(initialState: .init())
+        let sut = RunnerService(.testDependencies(appStateClient: .testDependency(appState)))
+        sut.updateRunnerSpeed(from: CPUInfo(percentage: Percentage(rawValue: 0.1), system: .zero, user: .zero, idle: .zero))
+        sut.updateRunnerSpeed(from: CPUInfo(percentage: Percentage(rawValue: 0.15), system: .zero, user: .zero, idle: .zero))
+        // 3.0 - 2.0 = 1.0 ≥ deadband(0.5): resend.
+        #expect(appState.withLock(\.runnerSpeeds.latestValue) == 3.0)
+    }
+
+    @Test
+    func updateRunnerSpeed_force_resends_even_within_deadband() {
+        let appState = AllocatedUnfairLock<AppState>(initialState: .init())
+        let sut = RunnerService(.testDependencies(appStateClient: .testDependency(appState)))
+        sut.updateRunnerSpeed(from: CPUInfo(percentage: Percentage(rawValue: 0.1), system: .zero, user: .zero, idle: .zero))
+        sut.updateRunnerSpeed(from: CPUInfo(percentage: Percentage(rawValue: 0.12), system: .zero, user: .zero, idle: .zero), force: true)
+        #expect(appState.withLock(\.runnerSpeeds.latestValue) == 2.4)
+    }
+
+    @Test
     func updateRunnerSpeed_clamps_speed_at_full_cpu_usage() {
         let appState = AllocatedUnfairLock<AppState>(initialState: .init())
         let sut = RunnerService(.testDependencies(appStateClient: .testDependency(appState)))
