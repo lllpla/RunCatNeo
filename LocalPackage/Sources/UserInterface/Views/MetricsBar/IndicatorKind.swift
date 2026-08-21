@@ -42,7 +42,12 @@ enum IndicatorKind {
         }
     }
 
-    static let customValueLabelMaxWidth = 80.0
+    // Long custom metric values (e.g. "周 ¥1,234.56 / 月 ¥5,678.90") used to be
+    // clipped at 80pt and overflowed into the next indicator. 160pt fits the
+    // longest realistic producer-side summary; the menu bar still bounds the
+    // total width via Image(size:), so an absurdly long string is cut at the
+    // bitmap edge instead of overlapping neighbors.
+    static let customValueLabelMaxWidth = 160.0
 
     static func customValueLabelSize(for text: String) -> CGSize {
         let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
